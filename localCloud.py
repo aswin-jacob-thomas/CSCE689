@@ -18,3 +18,8 @@ class LocalCloud:
             return None
         with open(filename, 'r') as f:
             return f.read()
+
+    def write(self, data, filename):
+        filename = os.path.join(self.dirName, filename)
+        with open(filename, 'w') as f:
+            f.write(data)

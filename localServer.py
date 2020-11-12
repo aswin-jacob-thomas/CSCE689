@@ -5,6 +5,7 @@ import json
 
 app = Flask(__name__)
 
+
 @app.route('/', methods=['POST'])
 def init():
     request = flask.request
@@ -14,16 +15,26 @@ def init():
     print("Initialization of cloud ", cloudId, 'complete')
     return 'Success'
 
-@app.route('/read', method=['POST'])
+
+@app.route('/read', methods=['POST'])
 def read():
     request = flask.request
     cloudId = json.loads(request.data)['cloudId']
     cloud = LocalCloud(cloudId)
-    cloud.read()
-    return 'This is read'
+    # cloud.read()
+    return 0
 
-@app.route('/write')
+@app.route('/write', methods=['POST'])
 def write():
+    request = flask.request
+    body = json.loads(request.data)
+    print("thE BODY ID ", body)
+    cloudId = body['cloudId']
+    data2write = body['data2write']
+    filename = body['filename']
+    cloud = LocalCloud(cloudId)
+    print(data2write)
+    cloud.write(data2write, filename)
     return 'This is write'
 
 
