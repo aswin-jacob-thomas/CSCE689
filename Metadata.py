@@ -1,13 +1,25 @@
 from json import JSONEncoder
-
+from utils import convert_to_string, convert_to_bytes
+import copy
 
 class Metadata:
-    def __init__(self, dataHash, encodedUnit, version):
+    def __init__(self, dataHash, hashedUnit, version, signature):
         self.dataHash = dataHash
-        self.encodedUnit = encodedUnit
+        self.hashedUnit = hashedUnit
         self.version = version
+        self.signature = signature
 
 
-class MetadataEncoder(JSONEncoder):
-    def default(self, o):
-        return o.__dict__
+class MetadataDecoder:
+    def decode(self, ob):
+        return Metadata(ob['dataHash'], ob['hashedUnit'], ob['version'], convert_to_bytes(ob['signature']))
+
+
+class MetadataEncoder:
+    def encode(self, ob):
+        print("The issue ")
+        print(ob.signature)
+        print('The awaited type ', type(ob.signature))
+        encoded_metadata = copy.deepcopy(ob)
+        encoded_metadata.signature = convert_to_string(ob.signature)
+        return encoded_metadata.__dict__

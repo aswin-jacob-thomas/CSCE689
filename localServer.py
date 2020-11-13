@@ -19,23 +19,22 @@ def init():
 @app.route('/read', methods=['POST'])
 def read():
     request = flask.request
-    cloudId = json.loads(request.data)['cloudId']
+    body = json.loads(request.data)
+    cloudId = body['cloudId']
+    filename = body['filename']
     cloud = LocalCloud(cloudId)
-    # cloud.read()
-    return 0
+    return cloud.read(filename)
 
 @app.route('/write', methods=['POST'])
 def write():
     request = flask.request
     body = json.loads(request.data)
-    print("thE BODY ID ", body)
     cloudId = body['cloudId']
     data2write = body['data2write']
     filename = body['filename']
     cloud = LocalCloud(cloudId)
-    print(data2write)
     cloud.write(data2write, filename)
-    return 'This is write'
+    return 'Write finished!'
 
 
 if __name__ == '__main__':
