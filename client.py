@@ -3,13 +3,12 @@ import json
 from DataUnit import DataUnit
 import queue
 import threading
-from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Protocol.SecretSharing import Shamir
 from pyeclib.ec_iface import ECDriver
 from SecretUnit import SecretUnit, SecretUnitEncoder, SecretUnitDecoder
-from Metadata import Metadata, MetadataEncoder, MetadataDecoder
-from utils import getSignature, getHash, verifySignature, getAESCiphers, pad, unpad
+from Metadata import Metadata
+from utils import getSignature, getHash, verifySignature, getAESCiphers
 from CloudMetadata import CloudMetadata, CloudMetadataDecoder
 from queue import Empty
 

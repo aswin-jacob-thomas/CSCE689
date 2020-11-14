@@ -1,6 +1,6 @@
-from json import JSONEncoder
 from utils import convert_to_string, convert_to_bytes
 import copy
+
 
 class Metadata:
     def __init__(self, dataHash, hashedUnit, version, signature):

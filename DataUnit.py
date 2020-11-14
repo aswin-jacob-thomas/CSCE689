@@ -1,5 +1,3 @@
-
 class DataUnit:
-    def __init__(self, duId, version=-1):
+    def __init__(self, duId):
         self.duId = duId
-        self.version = version

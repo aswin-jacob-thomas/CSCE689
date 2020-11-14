@@ -2,7 +2,6 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature.pkcs1_15 import PKCS115_SigScheme
 from Crypto.Hash import SHA1
 from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
 import os
 from binascii import hexlify, unhexlify
 
