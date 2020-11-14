@@ -1,5 +1,5 @@
-from utils import getSignature, getHash, convert_to_bytes, convert_to_string
-from Metadata import MetadataDecoder, MetadataEncoder
+from utils.utils import getSignature, getHash, convert_to_bytes, convert_to_string
+from models.Metadata import MetadataDecoder, MetadataEncoder
 import json
 from copy import deepcopy
 

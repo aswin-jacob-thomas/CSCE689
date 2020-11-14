@@ -1,15 +1,15 @@
 import requests
 import json
-from DataUnit import DataUnit
+from models.DataUnit import DataUnit
 import queue
 import threading
 from Crypto.Random import get_random_bytes
 from Crypto.Protocol.SecretSharing import Shamir
 from pyeclib.ec_iface import ECDriver
-from SecretUnit import SecretUnit, SecretUnitEncoder, SecretUnitDecoder
-from Metadata import Metadata
-from utils import getSignature, getHash, verifySignature, getAESCiphers
-from CloudMetadata import CloudMetadata, CloudMetadataDecoder
+from models.SecretUnit import SecretUnit, SecretUnitEncoder, SecretUnitDecoder
+from models.Metadata import Metadata
+from utils.utils import getSignature, getHash, verifySignature, getAESCiphers
+from models.CloudMetadata import CloudMetadata, CloudMetadataDecoder
 from queue import Empty
 
 

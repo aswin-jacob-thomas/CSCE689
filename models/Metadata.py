@@ -1,4 +1,4 @@
-from utils import convert_to_string, convert_to_bytes
+from utils.utils import convert_to_string, convert_to_bytes
 import copy
 
 

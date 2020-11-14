@@ -1,5 +1,5 @@
 from json import dumps, loads
-from utils import convert_to_string
+from utils.utils import convert_to_string
 from binascii import hexlify, unhexlify
 from copy import deepcopy
 
