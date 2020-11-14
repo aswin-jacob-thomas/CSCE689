@@ -7,7 +7,8 @@ import os
 from binascii import hexlify, unhexlify
 
 
-def getSignature(cloudId, hashUnit):
+def getSignature(cloudId, unit):
+    hashUnit = SHA1.new(unit.encode('utf8'))
     if not os.path.exists('cloudKeys'):
         os.makedirs('cloudKeys')
 
@@ -22,22 +23,30 @@ def getSignature(cloudId, hashUnit):
     with open(sig_file, 'r') as f:
         keyPair = RSA.import_key(f.read())
     signer = PKCS115_SigScheme(keyPair)
-    print("I am inside signature..")
-    print('GOING TO TAKE HASH OF ', hashUnit.hexdigest())
+    # print("I am inside signature..using the key ", filename)
+    # print('Signature is taken of the hash', hashUnit.hexdigest())
     re = hexlify(signer.sign(hashUnit))
-    print('The type returned ', type(re))
+    # print('The signature is ', re)
     return re
 
 
-def verifySignature(cloudId, hashData, signature):
+def verifySignature(cloudId, data, signature):
+    hashData = SHA1.new(data.encode('utf8'))
     filename = 'keyPair' + str(cloudId) + '.pem'
     sig_file = os.path.join('cloudKeys', filename)
     with open(sig_file, 'r') as f:
         keyPair = RSA.import_key(f.read())
-    signer = PKCS115_SigScheme(keyPair)
+    pubKey = keyPair.publickey()
+    signer = PKCS115_SigScheme(pubKey)
     original_sign = unhexlify(signature)
-    print('the original sign is ', original_sign)
-    print('The hashdata is ', hashData.hexdigest())
+
+    # print('I am inside verify signature which uses the key ', filename)
+    # print('Verifying signature of ', hashData.hexdigest())
+    # print('The signature passed to verify is ', signature)
+    # print('Checking for the created signature')
+    # print(getSignature(cloudId, data))
+    # print('These should be the same')
+
     try:
         signer.verify(hashData, original_sign)
         return True

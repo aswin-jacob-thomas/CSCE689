@@ -11,6 +11,7 @@ from SecretUnit import SecretUnit, SecretUnitEncoder, SecretUnitDecoder
 from Metadata import Metadata, MetadataEncoder, MetadataDecoder
 from utils import getSignature, getHash, verifySignature, getAESCiphers, pad, unpad
 from CloudMetadata import CloudMetadata, CloudMetadataDecoder
+from queue import Empty
 
 
 class DepSkyClient:
@@ -28,6 +29,14 @@ class DepSkyClient:
     def read(self, container):
         maxVersion, metadata_list = self.getMetadataFromClouds(filename= container.duId + 'metadata')
         count = 0
+        # Flush the metadata queue - cancel the remaining requests
+        try:
+            while True:
+                self.metadataQ.get_nowait()
+        except Empty:
+            pass
+        # Flushing complete
+
         if maxVersion == 0:
             print('No data to read! Sorry!!!')
             return
@@ -38,6 +47,11 @@ class DepSkyClient:
         for unit in secret_unit_list:
             shares.append((unit.secret_id, unit.share))
             fragments.append(unit.value)
+
+        print('These are the final shares after combining')
+        print(shares)
+        print('These are the final fragments from ec')
+        print(fragments)
 
         key = Shamir.combine(shares)
         encrypted_data = self.ec_driver.decode(fragments)
@@ -54,7 +68,7 @@ class DepSkyClient:
         q = queue.Queue()
         cloudIds = [cloudMetadata.cloudId for cloudMetadata in metadata_list]
         threads = [threading.Thread(target=self.getFileFromCloud, args=(i, filename, q)) for i in cloudIds]
-
+        metadata_list_to_dict = {metadata.cloudId: metadata for metadata in metadata_list}
         results = []
         verified_count = 0
 
@@ -64,17 +78,29 @@ class DepSkyClient:
 
         for _ in range(len(cloudIds)):
             result = q.get()
-
+            print('Hey im the origianl result', result, type(result))
             result = json.loads(result)
             secretUnit = SecretUnitDecoder().decode(result)
             cloudId = secretUnit.cloudId
-            metadata_of_secret_unit = metadata_list[cloudId]
-            latest_metadata = metadata_of_secret_unit[0]
-            if getHash(secretUnit) == latest_metadata.hashedUnit:
+            metadata_of_secret_unit = metadata_list_to_dict[cloudId]
+            print('The metadata from the cloud being compared - cloudId ', metadata_of_secret_unit.cloudId)
+            print('The hash of the thing being taken is ',SecretUnitEncoder().encode(secretUnit))
+            latest_metadata = metadata_of_secret_unit.metadata_list[0]
+            print('The hash from the metadata to compare with the new hash', latest_metadata.hashedUnit)
+            if getHash(SecretUnitEncoder().encode(secretUnit)).hexdigest() == latest_metadata.hashedUnit:
                 results.append(secretUnit)
                 verified_count += 1
+            else:
+                print('Not verified..... bad things happens@@')
 
             if verified_count > self.F:
+                # remove the remaining items from the queue
+                try:
+                    while True:
+                        q.get_nowait()
+                except Empty:
+                    pass
+
                 break
 
         return results
@@ -99,13 +125,18 @@ class DepSkyClient:
         encrypted_value = cipher.encrypt(value.encode('utf8'))
         shares = self.generateKeyShares(key)
         fragments = self.erasureCode(encrypted_value)
-
+        print('Writing aha')
+        print('The shares are')
+        print(shares)
+        print('The fragments are')
+        print(fragments)
         units = []
 
         for cloudId, (share, fragment) in enumerate(zip(shares, fragments)):
             idx, secret = share
             unit = SecretUnit(idx, secret, fragment, cloudId)
             units.append(SecretUnitEncoder().encode(unit))
+            print('Writing ', units[cloudId], 'to the cloud', cloudId)
 
         self.writeToClouds(container.duId +'value'+str(nextVersion), units)
         self.writeMetadata(container.duId +'metadata', value_hash, units, nextVersion, metadata_list)
@@ -143,15 +174,25 @@ class DepSkyClient:
                 cloudMetadata = CloudMetadataDecoder().decode(result)
                 metadata_list.append(cloudMetadata)
 
-        for i in range(self.N):
-            hashedUnit = getHash(units[i])
-            metadata = Metadata(dataHash, hashedUnit.hexdigest(), version, getSignature(i, hashedUnit))
+        # sort the metadata - or better store as dict :)
+        cloudsPresent = any(metadata_list)
+        if cloudsPresent:
+            metadata_list_to_dict = {metadata.cloudId: metadata for metadata in metadata_list}
 
-            if metadata_list[i]:
-                cloudMetadata = metadata_list[i].add_new_metadata(metadata)
+        for i in range(self.N):
+            print('Writing metadata of ', units[i], 'to cloud', i)
+            hashedUnit = getHash(units[i]).hexdigest()
+            print('The written hash is ', hashedUnit)
+            # got the cloud in ascending order
+
+            metadata = Metadata(dataHash, hashedUnit, version, getSignature(i, hashedUnit))
+            if cloudsPresent:
+                cloud = metadata_list_to_dict[i]
+                cloudMetadata = cloud.add_new_metadata(metadata)
             else:
                 cloudMetadata = CloudMetadata([metadata], i)
-
+            print('Now the cloud metadata looks like ')
+            print(cloudMetadata.return_writable_content())
             cloudMetadata = cloudMetadata.return_writable_content()
             metadata_of_clouds.append(cloudMetadata)
 
@@ -179,21 +220,21 @@ class DepSkyClient:
                 latest_metadata = cloudMetadata.metadata_list[0]
                 list_of_dicts = cloudMetadata.return_metadata_list_in_dicts()
 
-                print("The hash from the obtained cloudMetadata of cloud ", cloudMetadata.cloudId)
-                print(getHash(list_of_dicts).hexdigest())
-                print("The thing of which the hash is taken")
-                print(list_of_dicts)
+                # print("The hash from the obtained cloudMetadata of cloud ", cloudMetadata.cloudId)
+                # print(getHash(list_of_dicts).hexdigest())
+                # print("The thing of which the hash is taken")
+                # print(list_of_dicts)
 
-                if verifySignature(cloudMetadata.cloudId, getHash(list_of_dicts), cloudMetadata.metadata_list_sig):
+                if verifySignature(cloudMetadata.cloudId, getHash(list_of_dicts).hexdigest(), cloudMetadata.metadata_list_sig):
                     if verifySignature(cloudMetadata.cloudId, latest_metadata.hashedUnit, latest_metadata.signature):
                         verified_count += 1
                         versions_from_metadata.append(latest_metadata.version)
                         results.append(cloudMetadata)
-                        print("This is verified")
+                        print("This is verified of cloud ",cloudMetadata.cloudId)
                     else:
-                        print("Nooooooo!!!")
+                        print("The whole verification failed!!! of cloud ,", cloudMetadata.cloudId)
                 else:
-                    print('Noooo')
+                    print('The first verification failed! of cloud ', cloudMetadata.cloudId)
 
             # breaking condition
             if not any(results) and len(results) == self.N - self.F:
@@ -232,4 +273,5 @@ if __name__ == '__main__':
             client.write(du, content)
             print('Write complete')
         elif du and 'read' in text:
-            client.read(du)
+            data = client.read(du)
+            print('Hip hip hooray', data)

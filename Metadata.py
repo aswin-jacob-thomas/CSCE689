@@ -17,9 +17,6 @@ class MetadataDecoder:
 
 class MetadataEncoder:
     def encode(self, ob):
-        print("The issue ")
-        print(ob.signature)
-        print('The awaited type ', type(ob.signature))
         encoded_metadata = copy.deepcopy(ob)
         encoded_metadata.signature = convert_to_string(ob.signature)
         return encoded_metadata.__dict__
