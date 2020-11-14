@@ -22,10 +22,8 @@ def getSignature(cloudId, unit):
     with open(sig_file, 'r') as f:
         keyPair = RSA.import_key(f.read())
     signer = PKCS115_SigScheme(keyPair)
-    # print("I am inside signature..using the key ", filename)
-    # print('Signature is taken of the hash', hashUnit.hexdigest())
+
     re = hexlify(signer.sign(hashUnit))
-    # print('The signature is ', re)
     return re
 
 
@@ -38,13 +36,6 @@ def verifySignature(cloudId, data, signature):
     pubKey = keyPair.publickey()
     signer = PKCS115_SigScheme(pubKey)
     original_sign = unhexlify(signature)
-
-    # print('I am inside verify signature which uses the key ', filename)
-    # print('Verifying signature of ', hashData.hexdigest())
-    # print('The signature passed to verify is ', signature)
-    # print('Checking for the created signature')
-    # print(getSignature(cloudId, data))
-    # print('These should be the same')
 
     try:
         signer.verify(hashData, original_sign)

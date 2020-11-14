@@ -20,10 +20,7 @@ class CloudMetadata:
         list_dict = self.return_metadata_list_in_dicts()
         metadataHash = getHash(list_dict).hexdigest()
         encoded_cloud_metadata = deepcopy(self)
-        # print('Writing cloud metadata!!!')
-        # print('The Details at the time of writing of cloud', self.cloudId)
-        # print("The list of dicts is ")
-        # print(list_dict)
+
         encoded_cloud_metadata.metadata_list_sig = convert_to_string(getSignature(self.cloudId, metadataHash))
 
         metadata_dict_list = []

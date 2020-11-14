@@ -25,6 +25,7 @@ def read():
     cloud = LocalCloud(cloudId)
     return cloud.read(filename)
 
+
 @app.route('/write', methods=['POST'])
 def write():
     request = flask.request

@@ -23,8 +23,6 @@ class SecretUnitEncoder:
 class SecretUnitDecoder:
     def decode(self, ob):
         ob = loads(ob)
-        # print('Im the secret', ob)
-        # print('I M OF TYPE', type(ob))
         secret_id = ob['secret_id']
         share = unhexlify(ob['share'])
         value = unhexlify(ob['value'])
