@@ -27,3 +27,13 @@ python client.py
   `pick_du` **`container_name`**
   - read 
   `read`
+  
+## How to test the protocol
+### Run the attack
+```
+cd attacks
+python attacks.py
+```
+- Choose option 1 to modify the metadata
+- Choose option 2 to modify the data stored in the cloud 
+
