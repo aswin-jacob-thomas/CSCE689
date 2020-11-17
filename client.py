@@ -11,10 +11,12 @@ from models.Metadata import Metadata
 from utils.utils import getSignature, getHash, verifySignature, getAESCiphers
 from models.CloudMetadata import CloudMetadata, CloudMetadataDecoder
 from queue import Empty
+import os
+import sys
 
 
 class DepSkyClient:
-    def __init__(self, clientId, isLocal=True):
+    def __init__(self, isLocal, clientId):
         self.clientId = clientId
         self.isLocal = isLocal
         self.N = 4
@@ -24,6 +26,8 @@ class DepSkyClient:
 
         if self.isLocal:
             self.createLocalClients()
+        else:
+            self.createCloudClients()
 
     def read(self, container):
         maxVersion, metadata_list = self.getMetadataFromClouds(filename= container.duId + 'metadata')
@@ -237,9 +241,54 @@ class DepSkyClient:
         r = requests.post('http://localhost:5555/read', data=json.dumps({'cloudId': cloudId, 'filename': filename}))
         result_queue.put(r.text)
 
+    def readCredentials(self):
+        file_separator = os.path.sep
+        credential_file = 'config' + file_separator + 'accounts.properties'
+
+        with open(credential_file, 'r') as cred_file:
+            lines = cred_file.readlines()
+            config = {}
+            driver_id_list = []
+            driver_type_list = []
+            access_key_list = []
+            secret_key_list = []
+            location_list = []
+            for line in lines:
+                if line.startswith('#') or line.strip() == '':
+                    continue
+                else:
+                    split_tuples = line.rstrip('\n').split('=',2)
+                    if split_tuples[0] == 'driver_id':
+                        driver_id_list.append(split_tuples[1])
+                    elif split_tuples[0] == 'driver_type':
+                            driver_type_list.append(split_tuples[1])
+                    elif split_tuples[0] == 'access_key':
+                            access_ley_list.append(split_tuples[1])
+                    elif split_tuples[0] == 'secret_key':
+                            access_ley_list.append(split_tuples[1])
+                    elif split_tuples[0] == 'location':
+                            location_list.append(split.tuples[1])
+
+        credential_list = list(zip(driver_id_list, driver_type_list, access_key_list, secret_key_list, location_list))
+        return credential_list
+
+    def createCloudClients(self):
+
+        return
+
 
 if __name__ == '__main__':
-    client = DepSkyClient(clientId=0, isLocal=True)
+    try:
+        storage = sys.argv[1]
+    except IndexError:
+        raise SystemExit(f"Usage: {sys.argv[0]} <localStorage(0) / cloudStorage(1)>")
+
+    if storage == 0:
+        isLocal = True
+    else:
+        isLocal = False
+
+    client = DepSkyClient(isLocal, clientId=0)
     print("Pick a data unit- pick_du")
     print("Read - read")
     print("Write - write 'sample text'")
