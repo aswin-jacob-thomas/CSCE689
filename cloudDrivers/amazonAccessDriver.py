@@ -17,20 +17,12 @@ class AmazonS3Driver(cloudDriver):
 
         if cloudId == 'cloud1':
         	self.bucket_name = default_bucket_name + "-coc1"
-        	# location = "-coc1"
-        	# region = Region.US_Standard;
         elif cloudId == 'cloud2':
         	self.bucket_name = default_bucket_name + "-coc2"
-        	# location = "-coc2"
-        	# region = Region.EU_Ireland;
         elif cloudId == 'cloud3':
         	self.bucket_name = default_bucket_name + "-coc3"
-        	# location = "-coc3"
-        	# region = Region.US_West;
         elif cloudId == 'cloud4':
         	self.bucket_name = default_bucket_name + "-coc4"
-        	# location = "-coc4"
-        	# region = Region.US_Standard;
 
     def initialize(self):
     	self.s3_resource = boto3.resource('s3', aws_access_key_id=ACCESS_KEY,
